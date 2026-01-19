@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module rsc_cpui(
+module risc_cpu(
     input logic clk,
     input logic rset_lg
    
@@ -50,7 +50,7 @@ module rsc_cpui(
     
     wire [31:0] instruction;
     
-    rsc_memory #(
+    risc_memory #(
         .mem_init("instr_mem.mem")
     ) instruction_memory (
     .clk(clk),
@@ -86,7 +86,7 @@ module rsc_cpui(
   
  
                           
-    rsc_ctrl ctrl_unit(
+    risc_alu_ctrl ctrl_unit(
         //in
         .op(op),
         .f3(f3),
@@ -161,7 +161,7 @@ always_comb begin
 end
  
  
- rsc_reg regfile(
+ risc_register_file regfile(
     .clk(clk),
     //from CTRL
     .WE(reg_write & wb_valid),
@@ -193,7 +193,7 @@ end
  // to ALU
  wire [31:0] immediate;
  
- rsc_sgnex sign_extder(
+ risc_imm_generator sign_extder(
     .raw_src(raw_immediate),
     .imm_source(immediate_sr), // from ctrl unit to construct immediate for each type
     .immediate(immediate)
@@ -218,7 +218,7 @@ end
     endcase
 end
 
-rsc_alu alu_func(
+risc_alu alu_func(
     .OperA(read_reg1),  // here
     .OperB(alu_src2),
     .Alu_ctrl(alu_ctrl),
@@ -235,7 +235,7 @@ rsc_alu alu_func(
 wire [3:0] mem_byte_enable;
 wire [31:0] mem_write_data;
 
-load_store_decoder decoder(
+mem_access_aligner decoder(
     .alu_result_address(alu_result),
     .reg_read(read_reg2),
     .f3(f3),
@@ -253,7 +253,7 @@ load_store_decoder decoder(
 
 wire [31:0] mem_read;
 
-rsc_memory #(
+risc_memory #(
     .mem_init("data_mem.mem")
 )data_memory(
 
@@ -280,7 +280,7 @@ rsc_memory #(
 wire [31:0] mem_rwback_data;
 wire mem_rwback_valid;
 
-reader reader_func(
+load_data_extractor reader_func(
     .mem_data(mem_read),
     .be_mask(mem_byte_enable),
     .f3(f3),
